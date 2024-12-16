@@ -10,7 +10,7 @@
 #include <limits.h>
 #include <float.h>
 
-#define MATDEF static // Define a macro for static functions
+#define MATDEF static __attribute__((unused)) // Define a macro for static functions and suppresses all  warnings with functions defined with MATDEF
 
 // Matrix Structure and Information
 typedef struct Matrix
