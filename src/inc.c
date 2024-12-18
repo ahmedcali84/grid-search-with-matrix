@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include <string.h>
 
 #define MAX_LINE_COUNT 256
 #define INIT_CAPACITY 256
@@ -204,23 +203,15 @@ char convert_to_char(int num) {
 }
 
 Matrix load_grid_into_matrix(Grid *g) {
-    Matrix G;
     size_t grid_cols = g->items[0]->count;
     size_t grid_rows = g->count;
-    G.nrows = grid_rows;
-    G.ncols = grid_cols;
-
-    G.A = calloc(sizeof(int), grid_rows*grid_cols);
-    if (G.A == NULL) {
-        fprintf(stderr, ALLOCATION_FAILED);
-        exit(EXIT_FAILURE);
-    }
-    memset(G.A, 0, grid_rows*grid_cols);
+    Matrix G = CREATE_MATRIX(grid_rows, grid_cols, sizeof(int), TYPE_INT);
 
     for (size_t row = 0; row < grid_rows; ++row) {
         int *en = encode(g->items[row]);
         for (size_t col = 0; col < grid_cols; ++col) {
-            SET_ELEMENT(G, row, col, en[col]);
+            int n = en[col];
+            SET_ELEMENT(G, row, col, &n);
         }
         free(en);
     }
@@ -239,15 +230,9 @@ void print_grid(Grid *g) {
 
 // NOTE: DOT (.) is 46
 Matrix adjacency_matrix(Matrix grid_matrix) {
-    Matrix Adjacency;
     size_t weights = grid_matrix.ncols * grid_matrix.nrows;
-    Adjacency.nrows = weights;
-    Adjacency.ncols = weights;
-    Adjacency.A = calloc(sizeof(int), weights*weights);
-    if (Adjacency.A == NULL) {
-        fprintf(stderr, ALLOCATION_FAILED);
-        exit(EXIT_FAILURE);
-    }
+    Matrix Adjacency = CREATE_MATRIX(weights, weights, sizeof(int), TYPE_INT);
+    int a = 1;
 
     for (size_t i = 0; i < grid_matrix.nrows; ++i) {
         for (size_t j = 0; j < grid_matrix.ncols; ++j) {
@@ -255,101 +240,55 @@ Matrix adjacency_matrix(Matrix grid_matrix) {
 
             if (i > 0 && j + 1 < grid_matrix.ncols) {
                 size_t diagonal_right_up = index - grid_matrix.ncols + 1;
-                SET_ELEMENT(Adjacency, diagonal_right_up, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, diagonal_right_up, (int) 1);
+                SET_ELEMENT(Adjacency, diagonal_right_up, index, &a);
+                SET_ELEMENT(Adjacency, index, diagonal_right_up, &a);
             }
 
             if (j + 1 < grid_matrix.ncols) {
                 size_t right = index + 1;
-                SET_ELEMENT(Adjacency, right, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, right, (int) 1);
+                SET_ELEMENT(Adjacency, right, index, &a);
+                SET_ELEMENT(Adjacency, index, right, &a);
             }
 
             if (i + 1 < grid_matrix.nrows && j + 1 < grid_matrix.ncols) {
                 size_t diagonal_right_down = index + grid_matrix.ncols + 1;
-                SET_ELEMENT(Adjacency, diagonal_right_down, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, diagonal_right_down, (int) 1);
+                SET_ELEMENT(Adjacency, diagonal_right_down, index, &a);
+                SET_ELEMENT(Adjacency, index, diagonal_right_down, &a);
             }
 
             if (i > 0 && j > 0) {
                 size_t diagonal_left_up = (i - 1) * grid_matrix.ncols + (j - 1);
-                SET_ELEMENT(Adjacency, diagonal_left_up, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, diagonal_left_up, (int) 1);
+                SET_ELEMENT(Adjacency, diagonal_left_up, index, &a);
+                SET_ELEMENT(Adjacency, index, diagonal_left_up, &a);
             }
 
             if (j > 0) {
                 size_t left = index - 1;
-                SET_ELEMENT(Adjacency, left, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, left, (int) 1);
+                SET_ELEMENT(Adjacency, left, index, &a);
+                SET_ELEMENT(Adjacency, index, left, &a);
             }
 
             if (i + 1 < grid_matrix.nrows && j > 0) {
                 size_t diagonal_left_down = (i + 1) * grid_matrix.ncols + (j - 1);
-                SET_ELEMENT(Adjacency, diagonal_left_down, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, diagonal_left_down, (int) 1);
+                SET_ELEMENT(Adjacency, diagonal_left_down, index, &a);
+                SET_ELEMENT(Adjacency, index, diagonal_left_down, &a);
             }
 
             if (i + 1 < grid_matrix.nrows) {
                 size_t down = index + grid_matrix.ncols;
-                SET_ELEMENT(Adjacency, down, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, down, (int) 1);
+                SET_ELEMENT(Adjacency, down, index, &a);
+                SET_ELEMENT(Adjacency, index, down, &a);
             }
 
             if (i > 0) {
                 size_t up = index - grid_matrix.ncols;
-                SET_ELEMENT(Adjacency, up, index, (int) 1);
-                SET_ELEMENT(Adjacency, index, up, (int) 1);
+                SET_ELEMENT(Adjacency, up, index, &a);
+                SET_ELEMENT(Adjacency, index, up, &a);
             }
         }
     }
 
     return Adjacency;
-}
-
-int solve(char Start, char End, Matrix *Adjacency) {    
-    bool *visited = malloc(sizeof(bool) * (Adjacency->ncols));
-    if (visited == NULL) {
-        fprintf(stderr, ALLOCATION_FAILED);
-        exit(EXIT_FAILURE);
-    }
-    memset(visited, 0, (sizeof(bool)*(Adjacency->ncols)));
-
-    int move_count = 0;
-    int nodes_in_next_layer = 0;
-    int nodes_left_in_layer = 1;
-
-    Queue index;
-    init_queue(&index);
-    enqueue(&index, convert_to_int(Start));
-    visited[convert_to_int(Start)] = true;
-
-    while (index.head != NULL) {
-        int id = dequeue(&index);
-        nodes_left_in_layer--;
-
-        if (id == convert_to_int(End)) {
-            free(visited);
-            return move_count;
-        }
-        
-        for (size_t neighbour = 0; neighbour < Adjacency->ncols; ++neighbour) {
-            if (GET_ELEMENT(*Adjacency, id, neighbour) && !visited[neighbour]) {
-                enqueue(&index, neighbour);
-                visited[neighbour] = true;
-                nodes_in_next_layer++;
-            }
-        }
-
-        if (nodes_left_in_layer == 0) {
-            nodes_left_in_layer = nodes_in_next_layer;
-            nodes_in_next_layer = 0;
-            move_count++;
-        }
-        // print_queue(&index);
-    }
-
-    free(visited);
-    return -1;
 }
 
 size_t *get_neighbors(Matrix *matrix, size_t row, size_t col, int *num_neighbours) {
@@ -384,28 +323,6 @@ size_t *get_neighbors(Matrix *matrix, size_t row, size_t col, int *num_neighbour
     return valid_neighbours;
 }
 
-void dfs(Matrix *G, char Start, bool *visited, char End) {
-    visited[convert_to_int(Start)] = true;
-    printf("Visited Node %d\n", Start);
-
-    if (Start == End) {
-        printf("Target Reached.\n");
-        return;
-    }
-
-    for (size_t i = 0; i < G->ncols; ++i) {
-        for (size_t j = 0; j < G->ncols; ++j) {
-            int num_neighbours = 0;
-            size_t *valid = get_neighbors(G, i , j , &num_neighbours);
-            for (int k = 0; k < num_neighbours; ++k) {
-                if (!visited[(int)G->A[valid[k]]]) {
-                    dfs(G, G->A[k], visited, End);
-                }
-            }
-        }
-    }
-}
-
 int main(int argc, char **argv) {
     if (argc != 3) {
         printf("Usage: %s file_path StartAndEndJoined.\n", argv[0]);
@@ -430,21 +347,13 @@ int main(int argc, char **argv) {
     Matrix A = adjacency_matrix(G);
     // NOTE: The Adjacency data is too big to be printed(takes forever) on large files
     PRINT(A);
+    SHAPE(A);
 
     char Start = argv[2][0];
     char End = argv[2][1];
     printf("Start: %c is %d\nEnd: %c is %d\n", argv[2][0], argv[2][0], argv[2][1], argv[2][1]);
     UNUSED(Start);
     UNUSED(End);
-    
-    bool *visited = malloc(sizeof(bool) * (A.ncols));
-    if (visited == NULL) {
-        fprintf(stderr, ALLOCATION_FAILED);
-        exit(EXIT_FAILURE);
-    }
-    memset(visited, 0, (sizeof(bool)*(A.ncols)));
-
-    // dfs(&G, Start, visited, End);
 
     // NOTE: Deallocate Allocated memory
     UNLOAD(&G);
