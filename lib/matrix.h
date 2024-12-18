@@ -3,14 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
 #include <limits.h>
 #include <float.h>
-#include <assert.h>
 #include <string.h>
+#include <assert.h>
 
 #define MATDEF static __attribute__((unused)) // Define a macro for static functions and suppresses all warnings assosiated with unused functions defined with MATDEF
 
@@ -21,7 +20,6 @@ typedef enum {
     TYPE_DOUBLE,
     TYPE_SIZE_T,
     TYPE_CHAR,
-    TYPE_COUNT,
 } Element_Type;
 
 // Matrix Structure and Information
@@ -47,7 +45,7 @@ MATDEF void MATRIX_SHAPE(Matrix A, const char *name);                           
 MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B);                                                            // Adds two Matrices
 MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B);                                                       // Subtracts two Matrices
 MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B);                                                      // Computes Element-wise Product of Two Matrices
-MATDEF Matrix* DOT_PRODUCT(Matrix *A, Matrix *B);                                                          // Computes the Dot-Product of two Matrices
+MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B);                                                          // Computes the Dot-Product of two Matrices
 MATDEF Matrix TRANSPOSE(Matrix *A);                                                                        // Return TRANSPOSE of Matrix A
 MATDEF bool TEST_MATRIX_EQUAL(Matrix A, Matrix B, char *matrix_a, char *matrix_b);                         // Test Matrices for equality
 MATDEF Matrix FILL(size_t nrows, size_t ncols, size_t element_size, Element_Type type, void *fill_value);  // Creates A Matrix filled with a specific value (For Development Purposes)
@@ -199,7 +197,7 @@ MATDEF void PRINT_MATRIX(Matrix B, const char *name) {
                 for (size_t j = 0; j < B.ncols; ++j) {
                     double v;
                     GET_ELEMENT(B, i , j , &v);
-                    printf(" %ld ", v);
+                    printf(" %f ", v);
                 }
                 printf("\n");
             }
@@ -247,8 +245,27 @@ MATDEF void PRINT_MATRIX(Matrix B, const char *name) {
 }
 
 MATDEF void MATRIX_SHAPE(Matrix A, const char *name) {
-    // Print the shape of the matrix (rows, columns)
-    printf("%s(SHAPE: (%zu , %zu))\n", name, A.nrows, A.ncols);
+    // Print the shape of the matrix (rows, columns) and its type
+    switch (A.type) {
+        case TYPE_FLOAT:
+            printf("%s(SHAPE: (%zu , %zu), dtype=float)\n", name, A.nrows, A.ncols);
+            break;
+        case TYPE_SIZE_T:
+            printf("%s(SHAPE: (%zu , %zu), dtype=size_t)\n", name, A.nrows, A.ncols);
+            break;
+        case TYPE_INT:
+            printf("%s(SHAPE: (%zu , %zu), dtype=int)\n", name, A.nrows, A.ncols);
+            break;
+        case TYPE_BOOL:
+            printf("%s(SHAPE: (%zu , %zu), dtype=bool)\n", name, A.nrows, A.ncols);
+            break;
+        case TYPE_DOUBLE:
+            printf("%s(SHAPE: (%zu , %zu), dtype=double)\n", name, A.nrows, A.ncols);
+            break;
+        case TYPE_CHAR:
+            printf("%s(SHAPE: (%zu , %zu), dtype=char)\n", name, A.nrows, A.ncols);
+            break;
+    }
 }
 
 MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
@@ -258,13 +275,13 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
     // Initialize a new matrix for the result
     Matrix C = CREATE_MATRIX(A->nrows, A->ncols, A->element_size, A->type);
     
-    switch (A.type) {
+    switch (A->type) {
         case TYPE_SIZE_T:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a + b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -275,8 +292,8 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a + b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -287,8 +304,8 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     char a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a + b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -299,8 +316,8 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     int a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a + b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -311,20 +328,20 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     double a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a + b;
                     SET_ELEMENT(C, i , j , &c);
                 }
             }
             break;
 
-        case BOOL:
+        case TYPE_BOOL:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     bool a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a || b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -341,18 +358,18 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
 
 MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B) {
     // Check if the Dimensions of the Matrices are the same
-    assert((A->ncols == B->ncols && B->nrows == A->nrows) && "Subtraction Failed, Matrices Shape Mismatch");
+    assert((A->ncols == B->ncols && B->nrows == A->nrows && A->type == B->type) && "Subtraction Failed, Matrices Shape Mismatch");
 
     // Initialize a new matrix for the result
-    Matrix C = CREATE_MATRIX(A->nrows, A->ncols, A->element_size);
+    Matrix C = CREATE_MATRIX(A->nrows, A->ncols, A->element_size, A->type);
 
-    switch (A.type) {
+    switch (A->type) {
         case TYPE_SIZE_T:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a - b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -363,8 +380,8 @@ MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a - b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -375,8 +392,8 @@ MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     char a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a - b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -387,8 +404,8 @@ MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     int a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a - b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -399,8 +416,8 @@ MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     double a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a - b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -434,8 +451,8 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -446,8 +463,8 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -458,8 +475,8 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     int a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -470,8 +487,8 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     int a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -482,20 +499,20 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     double a , b , c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
                     SET_ELEMENT(C, i , j , &c);
                 }
             }
             break;
 
-        case BOOL:
+        case TYPE_BOOL:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     bool a , b, c;
-                    GET_ELEMENT(A, i , j , &a);
-                    GET_ELEMENT(B, i , j , &b);
+                    GET_ELEMENT(*A, i , j , &a);
+                    GET_ELEMENT(*B, i , j , &b);
                     c = a && b;
                     SET_ELEMENT(C, i , j , &c);
                 }
@@ -513,7 +530,7 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
 
 MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
     // Check if the matrices can be multiplied
-    assert((A->ncols != B->nrows && A->type == B->type)  && "Cannot Multiply A->ncols( %zu ) != B->nrows( %zu ).\n", A->ncols, B->nrows);
+    assert((A->ncols != B->nrows && A->type == B->type)  && "Error Multiplying: Dimensions Mismatch");
 
     // Initialize a new matrix for the result
     Matrix C = CREATE_MATRIX(A->nrows, B->ncols, A->element_size, A->type);
@@ -526,8 +543,8 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
                     float c = 0;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         float a , b;
-                        GET_ELEMENT(A, i , k , &a);
-                        GET_ELEMENT(B, k , j , &b);
+                        GET_ELEMENT(*A, i , k , &a);
+                        GET_ELEMENT(*B, k , j , &b);
                         c += a * b;
                     }
                     SET_ELEMENT(C , i , j , &c);
@@ -541,8 +558,8 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
                     int c = 0;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         int a , b;
-                        GET_ELEMENT(A, i , k , &a);
-                        GET_ELEMENT(B, k , j , &b);
+                        GET_ELEMENT(*A, i , k , &a);
+                        GET_ELEMENT(*B, k , j , &b);
                         c += a * b;
                     }
                     SET_ELEMENT(C , i , j , &c);
@@ -556,8 +573,8 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
                     double c = 0;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         double a , b;
-                        GET_ELEMENT(A, i , k , &a);
-                        GET_ELEMENT(B, k , j , &b);
+                        GET_ELEMENT(*A, i , k , &a);
+                        GET_ELEMENT(*B, k , j , &b);
                         c += a * b;
                     }
                     SET_ELEMENT(C , i , j , &c);
@@ -571,8 +588,8 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
                     size_t c = 0;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         size_t a , b;
-                        GET_ELEMENT(A, i , k , &a);
-                        GET_ELEMENT(B, k , j , &b);
+                        GET_ELEMENT(*A, i , k , &a);
+                        GET_ELEMENT(*B, k , j , &b);
                         c += a * b;
                     }
                     SET_ELEMENT(C , i , j , &c);
@@ -586,8 +603,8 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
                     float c = false;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         float a , b;
-                        GET_ELEMENT(A, i , k , &a);
-                        GET_ELEMENT(B, k , j , &b);
+                        GET_ELEMENT(*A, i , k , &a);
+                        GET_ELEMENT(*B, k , j , &b);
                         c = c || (a && b);
                     }
                     SET_ELEMENT(C , i , j , &c);
@@ -601,8 +618,8 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
                     int c = 0;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         int a , b;
-                        GET_ELEMENT(A, i , k , &a);
-                        GET_ELEMENT(B, k , j , &b);
+                        GET_ELEMENT(*A, i , k , &a);
+                        GET_ELEMENT(*B, k , j , &b);
                         c += a * b;
                     }
                     SET_ELEMENT(C , i , j , &c);
@@ -628,7 +645,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     int a;
-                    GET_ELEMENT(A, i , j , &a);
+                    GET_ELEMENT(*A, i , j , &a);
                     SET_ELEMENT(C, j , i , &a);
                 }
             }
@@ -638,7 +655,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     float a;
-                    GET_ELEMENT(A, i , j , &a);
+                    GET_ELEMENT(*A, i , j , &a);
                     SET_ELEMENT(C, j , i , &a);
                 }
             }
@@ -648,7 +665,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     double a;
-                    GET_ELEMENT(A, i , j , &a);
+                    GET_ELEMENT(*A, i , j , &a);
                     SET_ELEMENT(C, j , i , &a);
                 }
             }
@@ -658,7 +675,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     char a;
-                    GET_ELEMENT(A, i , j , &a);
+                    GET_ELEMENT(*A, i , j , &a);
                     SET_ELEMENT(C, j , i , &a);
                 }
             }
@@ -668,7 +685,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     size_t a;
-                    GET_ELEMENT(A, i , j , &a);
+                    GET_ELEMENT(*A, i , j , &a);
                     SET_ELEMENT(C, j , i , &a);
                 }
             }
@@ -678,7 +695,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
                     bool a;
-                    GET_ELEMENT(A, i , j , &a);
+                    GET_ELEMENT(*A, i , j , &a);
                     SET_ELEMENT(C, j , i , &a);
                 }
             }
@@ -694,7 +711,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
 
 MATDEF bool TEST_MATRIX_EQUAL(Matrix A, Matrix B, char *matrix_a, char *matrix_b) {
     // Check if the dimensions match
-    assert((A.ncols != B.ncols || A.nrows != B.nrows && A.type == B.type) && "%s and %s are NOT EQUAL: Different Dimensions\n", matrix_a, matrix_b);
+    assert(((A.ncols != B.ncols) || (A.nrows != B.nrows)) && (A.type == B.type) && "NOT EQUAL: Different Dimensions.");
 
     // Check if all elements are equal
     switch (A.type) {
@@ -768,6 +785,24 @@ MATDEF bool TEST_MATRIX_EQUAL(Matrix A, Matrix B, char *matrix_a, char *matrix_b
                 }
             }
             break;
+        
+        case TYPE_BOOL:
+            for (size_t i = 0; i < A.nrows; ++i) {
+                for (size_t j = 0; j < A.ncols; ++j) {
+                    bool a , b;
+                    GET_ELEMENT(A, i, j, &a);
+                    GET_ELEMENT(B, i, j, &b); 
+                    if (a != b) {
+                        printf("%s and %s are NOT EQUAL: Values differ at (%zu, %zu)\n", matrix_a, matrix_b, i, j); // Print mismatch
+                        return false; // Not equal
+                    }
+                }
+            }
+            break;
+
+        default:
+            printf("Unknown Type For Identifying Equal Matrix.\n");
+            exit(EXIT_FAILURE);
     }
 
     printf("%s and %s are EQUAL\n", matrix_a, matrix_b); // Print equal matrices
@@ -788,8 +823,7 @@ MATDEF Matrix FILL(size_t nrows, size_t ncols, size_t element_size, Element_Type
     return A; // Return the filled matrix
 }
 
-MATDEF void UNLOAD(Matrix *B)
-{
+MATDEF void UNLOAD(Matrix *B) {
     // Free allocated memory for the matrix
     if (B->A != NULL)
     {
