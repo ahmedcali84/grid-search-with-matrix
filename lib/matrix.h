@@ -23,8 +23,7 @@ typedef enum {
 } Element_Type;
 
 // Matrix Structure and Information
-typedef struct Matrix
-{
+typedef struct {
     void *A;             // Pointer to the array of matrix elements
     size_t nrows;        // Number of rows in the matrix
     size_t ncols;        // Number of columns in the matrix
@@ -40,8 +39,8 @@ MATDEF void GET_ELEMENT(Matrix C, size_t row, size_t col, void *target);        
 MATDEF void SET_ELEMENT(Matrix C, size_t row, size_t col, void *value);                                    // Set a specific element from the matrix to a new value
 MATDEF Matrix CREATE_MATRIX(size_t rows, size_t cols, size_t element_size, Element_Type type);             // Creates an empty Matrix With specified parameters
 MATDEF Matrix RANDOM_MATRIX(size_t nrows, size_t ncols, size_t element_size, Element_Type type);           // Generates random Matrix(nrows x ncols)
-MATDEF void PRINT_MATRIX(Matrix B, const char *name);                                                      // Prints a Matrix
-MATDEF void MATRIX_SHAPE(Matrix A, const char *name);                                                      // Prints the SHAPE of the matrix
+MATDEF void PRINT_MATRIX(const Matrix B, const char *name);                                                      // Prints a Matrix
+MATDEF int MATRIX_SHAPE(Matrix A, const char *name);                                                      // Prints the SHAPE of the matrix
 MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B);                                                            // Adds two Matrices
 MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B);                                                       // Subtracts two Matrices
 MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B);                                                      // Computes Element-wise Product of Two Matrices
@@ -55,7 +54,6 @@ MATDEF void UNLOAD(Matrix *B);                                                  
 #define PRINT(B) PRINT_MATRIX(B, #B)                                                                       // Macro definition of a special print function
 #define SHAPE(A) MATRIX_SHAPE(A, #A)                                                                       // Macro definition of a special SHAPE printing function
 #define TEST_MATRIX(A, B) TEST_MATRIX_EQUAL(A, B, #A, #B)                                                  // Special Macro Version of Test Matrix Function also prints the variable-name of the Matrix
-#define READ_FILE_FAILED "Failed To Read File %s\n"
 #define ALLOCATION_FAILED "Memory Allocation Failed.\n"
 
 
@@ -166,7 +164,7 @@ MATDEF Matrix RANDOM_MATRIX(size_t nrows, size_t ncols, size_t element_size, Ele
     return random; // Return the generated matrix
 }
 
-MATDEF void PRINT_MATRIX(Matrix B, const char *name) {
+MATDEF void PRINT_MATRIX(const Matrix B, const char *name) {
     // Print the matrix with its name
     printf("%s = [\n", name);
     switch (B.type) {
@@ -244,7 +242,7 @@ MATDEF void PRINT_MATRIX(Matrix B, const char *name) {
     printf("\n\n");
 }
 
-MATDEF void MATRIX_SHAPE(Matrix A, const char *name) {
+MATDEF int MATRIX_SHAPE(Matrix A, const char *name) {
     // Print the shape of the matrix (rows, columns) and its type
     switch (A.type) {
         case TYPE_FLOAT:
@@ -265,7 +263,11 @@ MATDEF void MATRIX_SHAPE(Matrix A, const char *name) {
         case TYPE_CHAR:
             printf("%s(SHAPE: (%zu , %zu), dtype=char)\n", name, A.nrows, A.ncols);
             break;
+        default:
+            printf("Unknown Type.\n");
+            return 1;
     }
+    return 0;
 }
 
 MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
@@ -291,7 +293,7 @@ MATDEF Matrix MATRIX_ADD(Matrix *A, Matrix *B) {
         case TYPE_FLOAT:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
-                    size_t a , b , c;
+                    float a , b , c;
                     GET_ELEMENT(*A, i , j , &a);
                     GET_ELEMENT(*B, i , j , &b);
                     c = a + b;
@@ -379,7 +381,7 @@ MATDEF Matrix MATRIX_SUBTRACT(Matrix *A, Matrix *B) {
         case TYPE_FLOAT:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
-                    size_t a , b , c;
+                    float a , b , c;
                     GET_ELEMENT(*A, i , j , &a);
                     GET_ELEMENT(*B, i , j , &b);
                     c = a - b;
@@ -462,7 +464,7 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
         case TYPE_FLOAT:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
-                    size_t a , b , c;
+                    float a , b , c;
                     GET_ELEMENT(*A, i , j , &a);
                     GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
@@ -474,7 +476,7 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
         case TYPE_CHAR:
             for (size_t i = 0; i < A->nrows; ++i) {
                 for (size_t j = 0; j < A->ncols; ++j) {
-                    int a , b , c;
+                    char a , b , c;
                     GET_ELEMENT(*A, i , j , &a);
                     GET_ELEMENT(*B, i , j , &b);
                     c = a * b;
@@ -530,7 +532,8 @@ MATDEF Matrix HADAMARD_PRODUCT(Matrix *A, Matrix *B) {
 
 MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
     // Check if the matrices can be multiplied
-    assert((A->ncols != B->nrows && A->type == B->type)  && "Error Multiplying: Dimensions Mismatch");
+    assert((A->ncols == B->nrows) && "Error Multiplying: Dimensions Mismatch");
+    assert((A->type == B->type) && "Type Mismatch");
 
     // Initialize a new matrix for the result
     Matrix C = CREATE_MATRIX(A->nrows, B->ncols, A->element_size, A->type);
@@ -600,7 +603,7 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
         case TYPE_BOOL:
             for (size_t i = 0; i < C.nrows; ++i) {
                 for (size_t j = 0; j < C.ncols; ++j) {
-                    float c = false;
+                    bool c = false;
                     for (size_t k = 0; k < A->ncols; ++k) {
                         float a , b;
                         GET_ELEMENT(*A, i , k , &a);
@@ -615,9 +618,9 @@ MATDEF Matrix DOT_PRODUCT(Matrix *A, Matrix *B) {
         case TYPE_CHAR:
             for (size_t i = 0; i < C.nrows; ++i) {
                 for (size_t j = 0; j < C.ncols; ++j) {
-                    int c = 0;
+                    char c = 0;
                     for (size_t k = 0; k < A->ncols; ++k) {
-                        int a , b;
+                        char a , b;
                         GET_ELEMENT(*A, i , k , &a);
                         GET_ELEMENT(*B, k , j , &b);
                         c += a * b;
@@ -711,7 +714,7 @@ MATDEF Matrix TRANSPOSE(Matrix *A) {
 
 MATDEF bool TEST_MATRIX_EQUAL(Matrix A, Matrix B, char *matrix_a, char *matrix_b) {
     // Check if the dimensions match
-    assert(((A.ncols != B.ncols) || (A.nrows != B.nrows)) && (A.type == B.type) && "NOT EQUAL: Different Dimensions.");
+    assert(((A.ncols == B.ncols) || (A.nrows == B.nrows)) && (A.type == B.type) && "NOT EQUAL: Different Dimensions.");
 
     // Check if all elements are equal
     switch (A.type) {
@@ -816,7 +819,7 @@ MATDEF Matrix FILL(size_t nrows, size_t ncols, size_t element_size, Element_Type
     // Fill the matrix with the specified value
     for (size_t i = 0; i < nrows; ++i) {
         for (size_t j = 0; j < ncols; ++j) {
-            SET_ELEMENT(A, i , j , &fill_value); // Set all elements
+            SET_ELEMENT(A, i , j , fill_value); // Set all elements
         }
     }
 
