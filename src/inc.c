@@ -11,9 +11,8 @@ int main(int argc, char **argv) {
         printf("Usage: %s file_path StartAndEndJoined.\n", argv[0]);
         return 1;
     }
-    
-    // NOTE: Allocate Memory For Grid
 
+    // NOTE: Allocate Memory For Grid
     grid_m = grid_alloc(grid_m);
     if (grid_m == NULL) {
         fprintf(stderr, ALLOCATION_FAILED" For Grid.\n");
