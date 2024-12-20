@@ -2,3 +2,5 @@ run
 time/
 expected/
 data/maze.txt
+*.o
+inc
