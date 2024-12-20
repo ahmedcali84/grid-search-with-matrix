@@ -4,8 +4,7 @@
 
 ### Compiling
 ``` bash
-$ chmod +x build.sh
-$ ./build.sh
+$ make
 ```
 
 ### Running 
