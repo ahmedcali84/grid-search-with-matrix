@@ -7,7 +7,7 @@
 #define READ_FILE_FAILED "Failed To Read File %s\n"
 
 #include "grid.h"
-#include "matrix.h"
+#include <matrix.h>
 
 // Declare the dir for neighbors (left, right, up, down, diagonal)
 extern int dir[8][2];

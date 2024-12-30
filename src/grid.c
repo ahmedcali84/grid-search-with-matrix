@@ -102,7 +102,12 @@ int *encode(Line *line) {
 }
 
 int convert_to_int(char c) {
-    return (int) c;
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A'; // Map 'A' to 0, 'B' to 1, ..., 'Z' to 25
+    } else {
+        fprintf(stderr, "Invalid character '%c' encountered.\n", c);
+        return -1; // Indicate invalid character
+    }
 }
 
 char convert_to_char(int num) {
@@ -137,8 +142,8 @@ void print_grid(Grid *g) {
 
 Matrix adjacency_matrix(Matrix grid_matrix) {
     size_t weights = grid_matrix.ncols * grid_matrix.nrows;
-    Matrix Adjacency = CREATE_MATRIX(weights, weights, sizeof(int), TYPE_INT);
-    int a = 1;
+    Matrix Adjacency = CREATE_MATRIX(weights, weights, sizeof(bool), TYPE_BOOL);
+    bool a = true;
 
     for (size_t i = 0; i < grid_matrix.nrows; ++i) {
         for (size_t j = 0; j < grid_matrix.ncols; ++j) {
@@ -198,6 +203,7 @@ Matrix adjacency_matrix(Matrix grid_matrix) {
 }
 
 size_t *get_neighbors(Matrix *matrix, size_t row, size_t col, int *num_neighbours) {
+    // Allocate memory for up to 8 neighbors
     size_t *valid_neighbours = malloc(sizeof(size_t) * 8);
     if (valid_neighbours == NULL) {
         fprintf(stderr, ALLOCATION_FAILED);
@@ -206,6 +212,7 @@ size_t *get_neighbors(Matrix *matrix, size_t row, size_t col, int *num_neighbour
 
     int count = 0;
 
+    // Explore all 8 directions
     for (int i = 0; i < 8; i++) {
         int newRow = row + dir[i][0];
         int newCol = col + dir[i][1];
@@ -217,14 +224,16 @@ size_t *get_neighbors(Matrix *matrix, size_t row, size_t col, int *num_neighbour
         }
     }
 
-    // Resize array to the actual number of neighbors
+    // Resize the array to match the actual number of valid neighbors
     size_t *new_neighbours = realloc(valid_neighbours, count * sizeof(size_t));
     if (new_neighbours == NULL) {
         fprintf(stderr, ALLOCATION_FAILED);
         free(valid_neighbours);
         exit(EXIT_FAILURE);
     }
+
     valid_neighbours = new_neighbours;
-    *num_neighbours = count;
+    *num_neighbours = count;  // Set the actual number of neighbors
+
     return valid_neighbours;
 }

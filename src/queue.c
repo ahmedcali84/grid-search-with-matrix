@@ -6,6 +6,8 @@ void init_queue(Queue *q) {
 }
 
 bool enqueue(Queue *q, int value) {
+    if (q == NULL) return false;
+
     Node *node = malloc(sizeof(Node));
     if (node == NULL) return false;
     node->value = value;
@@ -23,7 +25,7 @@ bool enqueue(Queue *q, int value) {
 }
 
 int dequeue(Queue *q) {
-    if (q->head == NULL) return QUEUE_EMPTY;
+    if (q->head == NULL || q == NULL) return QUEUE_EMPTY;
 
     Node *temp = q->head;
     int result = temp->value;
