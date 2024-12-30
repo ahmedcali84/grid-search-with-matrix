@@ -1,11 +1,11 @@
 # Define the compiler and flags
-CC = gcc
-CFLAGS = -Werror -Wall -Wextra -pedantic -ggdb -lm
+CC = cc
+CFLAGS = -Wall -Wextra -pedantic -ggdb -lm
 INCLUDE_PATH = -Ilib
 OUTPUT = run
 
 # Define source files and object files
-SRC = src/inc.c src/queue.c src/grid.c
+SRC = src/inc.c src/grid.c src/queue.c src/search.c
 OBJ = $(SRC:.c=.o)
 
 # Default target
