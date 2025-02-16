@@ -149,7 +149,7 @@ MATDEF Matrix RANDOM_MATRIX(size_t nrows, size_t ncols, size_t element_size, Ele
         case TYPE_FLOAT:
             for (size_t i = 0; i < random.nrows; ++i) {
                 for (size_t j = 0; j < random.ncols; ++j) {
-                    float v = ((float) rand() / RAND_MAX) * 20.0f - 10.0f;
+                    float v = ((float) rand() / (float) RAND_MAX) * 20.0f - 10.0f;
                     SET_ELEMENT(random, i , j , &v);
                 }
             }
