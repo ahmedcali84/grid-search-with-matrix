@@ -24,7 +24,7 @@ typedef struct {
     size_t capacity;
 } Grid;
 
-Grid *grid_alloc(Grid *grid);
+Grid *grid_alloc();
 void append_to_grid(Grid *grid, Line *line);
 void grid_dealloc(Grid *g);
 bool read_file(const char *file_path, Grid *grid);

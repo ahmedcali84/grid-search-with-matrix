@@ -1,4 +1,4 @@
-#ifndef SEARCH_IMPLEMENATTION
+#ifndef SEARCH_IMPLEMENTATION
 #define SEARCH_IMPLEMENTATION
 
 #include <matrix.h>

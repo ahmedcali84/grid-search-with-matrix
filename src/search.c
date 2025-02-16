@@ -38,7 +38,8 @@ bool bfs(Matrix *adjacency, int start, int end, int *path_to_destination, void *
             }
 
             memcpy(index , &path_index , sizeof(int));
-
+            
+            queue_dealloc(&q);
             return true;  // Path found
         }
 
@@ -54,6 +55,6 @@ bool bfs(Matrix *adjacency, int start, int end, int *path_to_destination, void *
             }
         }
     }
-
+    queue_dealloc(&q);
     return false;  // Path not found
 }

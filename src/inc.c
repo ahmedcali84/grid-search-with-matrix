@@ -31,8 +31,6 @@ void print_mark(Matrix *G, int *path, int index) {
     }
 }
 
-Grid *grid_m;
-
 int main(int argc, char **argv) {
     if (argc != 2) {
         printf("Usage: %s file_path.\n", argv[0]);
@@ -40,7 +38,7 @@ int main(int argc, char **argv) {
     }
 
     // NOTE: Allocate Memory For Grid
-    grid_m = grid_alloc(grid_m);
+    Grid *grid_m = grid_alloc();
     if (grid_m == NULL) {
         fprintf(stderr, ALLOCATION_FAILED" For Grid.\n");
         return 1;
@@ -61,8 +59,9 @@ int main(int argc, char **argv) {
     SHAPE(A);
 
     int path_to[A.ncols];
+    size_t end_node = (G.nrows - 1) * G.ncols + (G.ncols - 1);
     int index;
-    if(bfs(&A, 0, 72, path_to , &index)) {
+    if(bfs(&A, 0, end_node, path_to , &index)) {
         for (int i = 0; i < index; ++i) {
             printf("%d ", path_to[i]);
         }

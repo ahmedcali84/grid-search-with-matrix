@@ -56,6 +56,7 @@ void print_queue(Queue *q) {
 }
 
 void queue_dealloc(Queue *q) {
+    if (q == NULL) return; // Check if the queue is NULL
     Node *current = q->head;
     Node *nextnode;
 
