@@ -1,5 +1,5 @@
 # Define the compiler and flags
-CC = cc
+CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -ggdb -lm
 INCLUDE_PATH = -Ilib
 OUTPUT = run
